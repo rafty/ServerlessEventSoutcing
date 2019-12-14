@@ -1,0 +1,38 @@
+,,,,,,,,,,
+Command,,,,,,,,,,
+command,item_id,version(range),event_id,event_type,name,quantity,state,save_at,fired_at,order_id
+stock_add,00000001,-,68c195ea-9749-4918-83aa-3f6e9c27f147,stock_add,Product 1,20,-,-,2019-11-20 01:23:22.923444,
+item_reserve,00000001,-,cb149bc6-0b4c-440b-a207-eadb737bba49,item_reserve,Product 1,1,-,-,2019-11-22 20:32:12.500500,49a24871-73a2-4797-a469-51da03e76
+item_reserve_complete,00000001,-,0f8c5646-7d3b-4125-a40b-463b80dc3832,item_reserve_complete,Product 1,1,-,-,2019-11-22 20:32:19.130625,49a24871-73a2-4797-a469-51da03e76
+item_reserve,00000001,-,b1d5e08d-723a-4eba-84a6-3c91acdd3d71,item_reserve,Product 1,3,-,-,2019-11-22 20:34:14.389487,49a24871-73a2-4797-a469-51da03e76
+item_reserve_cancel,00000001,-,12821b23-f999-432b-8a70-d5054427edd7,item_reserve_cancel,Product 1,3,-,-,2019-11-22 20:36:26.385736,49a24871-73a2-4797-a469-51da03e76
+item_reserve,00000001,-,0f8c5646-7d3b-4125-a40b-463b80dc3832,item_reserve,Product 1,5,-,-,2019-11-22 20:36:26.435621,49a24871-73a2-4797-a469-51da03e76
+,,,,,,,,,,
+EventStore,,,,,,,,,,
+command,item_id(hash),version(range),event_id,event_type,name,quantity,state,save_at,fired_at,order_id
+-,00000001,1,68c195ea-9749-4918-83aa-3f6e9c27f147,stock_add,Product 1,20,-,2019-11-20 01:23:23.287364,2019-11-20 01:23:22.923444,
+-,00000001,2,cb149bc6-0b4c-440b-a207-eadb737bba49,item_reserve,Product 1,1,-,2019-11-22 20:32:12.593847,2019-11-22 20:32:12.500500,49a24871-73a2-4797-a469-51da03e76
+-,00000001,3,0f8c5646-7d3b-4125-a40b-463b80dc3832,item_reserve_complete,Product 1,1,-,2019-11-22 20:32:19.162938,2019-11-22 20:32:19.130625,49a24871-73a2-4797-a469-51da03e76
+-,00000001,4,b1d5e08d-723a-4eba-84a6-3c91acdd3d71,item_reserve,Product 1,3,-,2019-11-22 20:34:14.833423,2019-11-22 20:34:14.389487,49a24871-73a2-4797-a469-51da03e76
+-,00000001,5,12821b23-f999-432b-8a70-d5054427edd7,item_reserve_cancel,Product 1,3,-,2019-11-22 20:36:26.896173,2019-11-22 20:36:26.385736,49a24871-73a2-4797-a469-51da03e76
+①,00000001,6,0f8c5646-7d3b-4125-a40b-463b80dc3832,item_reserve,Product 1,5,-,2019-11-22 20:36:26.999999,2019-11-22 20:36:26.435621,49a24871-73a2-4797-a469-51da03e76
+,,,,,,,,,,
+Snapshot,,,,,,,,,,
+command,item_id(hash),version(range),event_id,event_type,name,quantity,state,save_at,fired_at,order_id
+-,00000001-snapshot,1,-,-,Product 1,-,"{""available"": 20, ""reserved"": 0, ""bought"": 0}",2019-11-20 01:23:23.287364,-,
+-,00000001-snapshot,2,-,-,Product 1,-,"{""available"": 19, ""reserved"": 1, ""bought"": 0}",2019-11-22 20:32:12.593847,-,-
+-,00000001-snapshot,3,-,-,Product 1,-,"{""available"": 19, ""reserved"": 0, ""bought"": 1}",2019-11-22 20:32:19.162938,-,-
+-,00000001-snapshot,4,-,-,Product 1,-,"{""available"": 18, ""reserved"": 1, ""bought"": 1}",2019-11-22 20:34:14.833423,-,-
+-,00000001-snapshot,5,-,-,Product 1,-,"{""available"": 19, ""reserved"": 0, ""bought"": 1}",2019-11-22 20:36:26.896173,-,-
+,,,,,,,,,,-
+,,,,,,,,,,
+Current State,,,,,,,"{""available"": 14, ""reserved"": 5, ""bought"": 1}",,,
+,,,,,,,,,,
+Deduplication,,,,,,,,,,
+command,item_id(hash),version,event_id,event_type,name,quantity,state,save_at,fired_at,order_id
+-,68c195ea-9749-4918-83aa-3f6e9c27f147-deduplication,0,-,-,-,-,-,-,-,-
+-,cb149bc6-0b4c-440b-a207-eadb737bba49-deduplication,0,-,-,-,-,-,-,-,-
+-,0f8c5646-7d3b-4125-a40b-463b80dc3832-deduplication,0,-,-,-,-,-,-,-,-
+-,b1d5e08d-723a-4eba-84a6-3c91acdd3d71-deduplication,0,-,-,-,-,-,-,-,-
+-,12821b23-f999-432b-8a70-d5054427edd7-deduplication,0,-,-,-,-,-,-,-,-
+-,0f8c5646-7d3b-4125-a40b-463b80dc3832-deduplication,0,-,-,-,-,-,-,-,-

@@ -1,0 +1,154 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: >-
+  Serverless Event Sourcing CQRS
+
+Resources:
+
+# ---------------------------------------------------------------
+#  Amazon DynamoDB
+# ---------------------------------------------------------------
+
+  EventStore:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: EventStore
+        AttributeDefinitions:
+          - AttributeName: item_id
+            AttributeType: S
+          - AttributeName: version
+            AttributeType: N
+        KeySchema:
+          - AttributeName: item_id
+            KeyType: HASH
+          - AttributeName: version
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        StreamSpecification:
+          StreamViewType: NEW_IMAGE
+
+  EventStoreStream:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 1
+      Enabled: True
+      EventSourceArn: !GetAtt EventStore.StreamArn
+      FunctionName: !GetAtt SnapshotFunction.Arn
+      StartingPosition: TRIM_HORIZON
+
+
+# ---------------------------------------------------------------
+#  AWS Lambda
+# ---------------------------------------------------------------
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: lambda_es_role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+
+  LambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: lambda_es_policy
+      Roles:
+        - !Ref LambdaRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - cloudwatch:*
+              - logs:*
+              - dynamodb:*
+              - apigateway:*
+              - lambda:*
+            Effect: Allow
+            Resource:
+              - '*'
+
+  EventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EventFunction
+      Description: EventFunction
+      Timeout: 200
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.7
+      Role: !GetAtt LambdaRole.Arn
+      CodeUri: event/
+      Tracing: Active
+      Layers:
+        - !Ref LambdaLayerESCQRS
+
+  SnapshotFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: SnapshotFunction
+      Description: SnapshotFunction
+      Timeout: 200
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.7
+      Role: !GetAtt LambdaRole.Arn
+      CodeUri: snapshot/
+      Tracing: Active
+      Layers:
+        - !Ref LambdaLayerESCQRS
+
+
+  QueryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: QueryFunction
+      Description: QueryFunction
+      Timeout: 200
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.7
+      Role: !GetAtt LambdaRole.Arn
+      CodeUri: query/
+      Tracing: Active
+      Layers:
+        - !Ref LambdaLayerESCQRS
+      Events:
+        Get:
+          Type: Api
+          Properties:
+            Path: /inventory
+            Method: Get
+
+
+  TestEventSourceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: TestEventSourceFunction
+      Description: TestEventSourceFunction
+      Timeout: 200
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.7
+      Role: !GetAtt LambdaRole.Arn
+      CodeUri: test/
+      Tracing: Active
+      Layers:
+        - !Ref LambdaLayerESCQRS
+      Environment:
+        Variables:
+          EVENT_FUNCTION: !Ref EventFunction
+
+
+  LambdaLayerESCQRS:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: Escqrs-Lambda-Layer
+      Description: Common Application Resource layer
+      ContentUri: lambda/layer
